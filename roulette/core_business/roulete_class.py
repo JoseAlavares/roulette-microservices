@@ -13,9 +13,9 @@ class RouletteCore:
             logger.error(msg_error)
             raise Exception(msg_error)
 
-    def open_roulette(self, id):
+    def open_roulette_to_bet(self, id):
         try:
-            RouletteModel.update(open=True).where(id == id).execute()
+            RouletteModel.update({ RouletteModel.open: True }).where(RouletteModel.id == id).execute()
         except Exception as ex:
             msg_error = "Couldn't open the roultte with id {}".format(id)
             logger.error(ex)
