@@ -21,3 +21,10 @@ class RouletteCore:
             logger.error(ex)
             logger.error(msg_error)
             raise Exception(msg_error)
+
+    def play_bet_by_id_roulette(self, id):
+        try:
+            # RouletteModel.
+            pass
+        except:
+            pass
