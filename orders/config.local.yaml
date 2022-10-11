@@ -1,0 +1,4 @@
+RABBITMQ_USER: guest
+RABBITMQ_PASSWORD: guest
+RABBITMQ_HOST: amqp_service
+AMQP_URI: pyamqp://${RABBITMQ_USER:guest}:${RABBITMQ_PASSWORD:guest}@${RABBITMQ_HOST:amqp_service}

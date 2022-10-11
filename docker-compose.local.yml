@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+
+  amqp-service-chubb:
+    image: rabbitmq:latest
+    container_name: amqp-service-chubb
+    restart: unless-stopped
+    networks:
+      - chubb-network
+
+  roulette-service:
+    image: jalvarez/roulette-service:local
+    container_name: roulette-service
+    restart: unless-stopped
+    command: nodemon -e .py -L --exec "nameko run --config config.local.yaml main"
+    build:
+      context: ./roulette
+      dockerfile: Dockerfile.local
+    volumes:
+      - ./roulette:/home/app
+    networks:
+      - chubb-network
+    depends_on:
+      - amqp-service-chubb
+      - api-gateway-chubb
+      - postgres-chubb-roulette
+
+  user-service:
+    image: jalvarez/user-service:local
+    container_name: user-service
+    restart: unless-stopped
+    command: nodemon -e .py -L --exec "nameko run --config config.local.yaml main"
+    build:
+      context: ./users
+      dockerfile: Dockerfile.local
+    volumes:
+      - ./users:/home/app
+    networks:
+      - chubb-network
+    depends_on:
+      - amqp-service-chubb
+      - api-gateway-chubb
+      - postgres-chubb-user
+
+  api-gateway-chubb:
+    image: jalvarez/api-gateway-chubb:local
+    container_name: api-gateway-chubb
+    restart: unless-stopped
+    command: nodemon -e py --exec "nameko run --config config.local.yaml main"
+    ports:
+      - 4300:8000
+    build:
+      context: ./api-rest
+      dockerfile: Dockerfile.local
+    volumes:
+      - ./api-rest:/home/app
+    networks:
+      - chubb-network
+    depends_on:
+      - amqp-service-chubb
+
+  postgres-chubb-roulette:
+    image: postgres:14.5-bullseye
+    container_name: postgres-chubb-roulette
+    ports:
+      - 5440:5432
+    environment:
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=chubb-roulette
+    networks:
+      - chubb-network
+  
+  postgres-chubb-user:
+    image: postgres:14.5-bullseye
+    container_name: postgres-chubb-user
+    ports:
+      - 5441:5432
+    environment:
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=chubb-user
+    networks:
+      - chubb-network
+
+networks:
+  chubb-network:
+    driver: bridge
